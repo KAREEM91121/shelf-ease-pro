@@ -182,7 +182,7 @@ export const InvoiceManagement = ({
                     <SelectContent>
                       {products.filter(p => p.quantity > 0).map((product) => (
                         <SelectItem key={product.id} value={product.id}>
-                          {product.name} - {product.price} ج.م (متوفر: {product.quantity})
+                          {product.name} - {product.price} د.ع (متوفر: {product.quantity})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -209,7 +209,7 @@ export const InvoiceManagement = ({
                         <div className="flex-1">
                           <span className="font-medium">{item.productName}</span>
                           <span className="text-muted-foreground mr-2">
-                            {item.quantity} × {item.price} ج.م = {(item.quantity * item.price).toFixed(2)} ج.م
+                            {item.quantity} × {item.price} د.ع = {(item.quantity * item.price).toFixed(2)} د.ع
                           </span>
                         </div>
                         <Button
@@ -225,7 +225,7 @@ export const InvoiceManagement = ({
                   </div>
                   <div className="border-t pt-4 mt-4">
                     <div className="text-lg font-bold text-left">
-                      الإجمالي: {calculateTotal().toFixed(2)} ج.م
+                      الإجمالي: {calculateTotal().toFixed(2)} د.ع
                     </div>
                   </div>
                 </div>
@@ -273,7 +273,7 @@ export const InvoiceManagement = ({
                 <div className="border-t pt-3">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">الإجمالي:</span>
-                    <span className="text-lg font-bold text-success">{invoice.total} ج.م</span>
+                    <span className="text-lg font-bold text-success">{invoice.total} د.ع</span>
                   </div>
                 </div>
               </div>

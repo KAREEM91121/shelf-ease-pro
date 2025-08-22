@@ -196,7 +196,7 @@ export const ProductManagement = ({
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">السعر:</span>
-                  <span className="font-semibold">{product.price} ج.م</span>
+                  <span className="font-semibold">{product.price} د.ع</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">الكمية:</span>

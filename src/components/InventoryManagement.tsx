@@ -70,7 +70,7 @@ export const InventoryManagement = ({ products }: InventoryManagementProps) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">قيمة المخزون</p>
-                <p className="text-2xl font-bold">{totalValue.toLocaleString()} ج.م</p>
+                <p className="text-2xl font-bold">{totalValue.toLocaleString()} د.ع</p>
               </div>
               <Warehouse className="h-8 w-8 text-success" />
             </div>
@@ -153,7 +153,7 @@ export const InventoryManagement = ({ products }: InventoryManagementProps) => {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">السعر:</span>
-                    <span className="font-semibold">{product.price} ج.م</span>
+                    <span className="font-semibold">{product.price} د.ع</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">الكمية المتوفرة:</span>
@@ -167,7 +167,7 @@ export const InventoryManagement = ({ products }: InventoryManagementProps) => {
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">القيمة الإجمالية:</span>
                     <span className="font-semibold">
-                      {(product.price * product.quantity).toLocaleString()} ج.م
+                      {(product.price * product.quantity).toLocaleString()} د.ع
                     </span>
                   </div>
                 </div>

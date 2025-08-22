@@ -39,7 +39,7 @@ export const Dashboard = ({ products, invoices }: DashboardProps) => {
     },
     {
       title: "قيمة المخزن",
-      value: `${totalInventoryValue.toLocaleString()} ج.م`,
+      value: `${totalInventoryValue.toLocaleString()} د.ع`,
       icon: Warehouse,
       color: "bg-success",
     },
@@ -51,7 +51,7 @@ export const Dashboard = ({ products, invoices }: DashboardProps) => {
     },
     {
       title: "إجمالي المبيعات",
-      value: `${totalRevenue.toLocaleString()} ج.م`,
+      value: `${totalRevenue.toLocaleString()} د.ع`,
       icon: TrendingUp,
       color: "bg-warning",
     },
@@ -133,7 +133,7 @@ export const Dashboard = ({ products, invoices }: DashboardProps) => {
                 {invoices.slice(-3).reverse().map((invoice) => (
                   <div key={invoice.id} className="flex justify-between items-center">
                     <span className="text-sm">{invoice.customerName}</span>
-                    <span className="font-semibold">{invoice.total} ج.م</span>
+                    <span className="font-semibold">{invoice.total} د.ع</span>
                   </div>
                 ))}
               </div>
