@@ -5,8 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Package } from "lucide-react";
+import { Plus, Edit, Trash2, Package, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { BarcodeGenerator } from "@/components/BarcodeGenerator";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 
 interface Product {
   id: string;
@@ -14,6 +16,7 @@ interface Product {
   price: number;
   quantity: number;
   category: string;
+  barcode: string;
 }
 
 interface ProductManagementProps {
@@ -31,13 +34,35 @@ export const ProductManagement = ({
 }: ProductManagementProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     price: "",
     quantity: "",
     category: "",
+    barcode: "",
   });
   const { toast } = useToast();
+
+  // Generate unique barcode for new products
+  const generateBarcode = () => {
+    return Date.now().toString() + Math.random().toString().substr(2, 5);
+  };
+
+  // Filter products based on search term (name, category, or barcode)
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.barcode.includes(searchTerm)
+  );
+
+  const handleBarcodeSearch = (barcodeValue: string) => {
+    setSearchTerm(barcodeValue);
+    toast({
+      title: "تم المسح",
+      description: `تم البحث عن الباركود: ${barcodeValue}`,
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +70,21 @@ export const ProductManagement = ({
     if (!formData.name || !formData.price || !formData.quantity || !formData.category) {
       toast({
         title: "خطأ",
-        description: "يرجى ملء جميع الحقول",
+        description: "يرجى ملء جميع الحقول المطلوبة",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Auto-generate barcode if not provided
+    const barcodeValue = formData.barcode || generateBarcode();
+
+    // Check if barcode already exists (for new products or when editing barcode)
+    const existingProduct = products.find(p => p.barcode === barcodeValue);
+    if (existingProduct && (!editingProduct || existingProduct.id !== editingProduct.id)) {
+      toast({
+        title: "خطأ",
+        description: "هذا الباركود موجود بالفعل",
         variant: "destructive",
       });
       return;
@@ -56,6 +95,7 @@ export const ProductManagement = ({
       price: parseFloat(formData.price),
       quantity: parseInt(formData.quantity),
       category: formData.category,
+      barcode: barcodeValue,
     };
 
     if (editingProduct) {
@@ -72,7 +112,7 @@ export const ProductManagement = ({
       });
     }
 
-    setFormData({ name: "", price: "", quantity: "", category: "" });
+    setFormData({ name: "", price: "", quantity: "", category: "", barcode: "" });
     setEditingProduct(null);
     setIsDialogOpen(false);
   };
@@ -84,6 +124,7 @@ export const ProductManagement = ({
       price: product.price.toString(),
       quantity: product.quantity.toString(),
       category: product.category,
+      barcode: product.barcode,
     });
     setIsDialogOpen(true);
   };
@@ -114,7 +155,7 @@ export const ProductManagement = ({
               إضافة منتج جديد
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingProduct ? "تعديل المنتج" : "إضافة منتج جديد"}
@@ -160,6 +201,29 @@ export const ProductManagement = ({
                   placeholder="أدخل فئة المنتج"
                 />
               </div>
+              <div>
+                <Label htmlFor="barcode">الباركود (اختياري)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="barcode"
+                    value={formData.barcode}
+                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                    placeholder="سيتم إنشاء باركود تلقائياً إذا ترك فارغاً"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => setFormData({ ...formData, barcode: generateBarcode() })}
+                  >
+                    إنشاء
+                  </Button>
+                </div>
+                {formData.barcode && (
+                  <div className="mt-2">
+                    <BarcodeGenerator value={formData.barcode} height={60} fontSize={12} />
+                  </div>
+                )}
+              </div>
               <div className="flex gap-2 pt-4">
                 <Button type="submit" variant="success" className="flex-1">
                   {editingProduct ? "تحديث" : "إضافة"}
@@ -170,7 +234,7 @@ export const ProductManagement = ({
                   onClick={() => {
                     setIsDialogOpen(false);
                     setEditingProduct(null);
-                    setFormData({ name: "", price: "", quantity: "", category: "" });
+                    setFormData({ name: "", price: "", quantity: "", category: "", barcode: "" });
                   }}
                 >
                   إلغاء
@@ -181,8 +245,26 @@ export const ProductManagement = ({
         </Dialog>
       </div>
 
+      {/* Search Bar */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="البحث بالاسم، الفئة أو الباركود..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pr-10"
+          />
+        </div>
+        <BarcodeScanner onScan={handleBarcodeSearch}>
+          <Button variant="outline">
+            مسح باركود
+          </Button>
+        </BarcodeScanner>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <Card key={product.id} className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -204,6 +286,11 @@ export const ProductManagement = ({
                     {product.quantity}
                   </span>
                 </div>
+                {product.barcode && (
+                  <div className="border-t pt-3">
+                    <BarcodeGenerator value={product.barcode} height={50} fontSize={10} />
+                  </div>
+                )}
                 <div className="flex gap-2 pt-2">
                   <Button
                     size="sm"
@@ -229,6 +316,22 @@ export const ProductManagement = ({
           </Card>
         ))}
       </div>
+
+      {filteredProducts.length === 0 && searchTerm && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Search className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">لا توجد نتائج</h3>
+            <p className="text-muted-foreground mb-4">لم يتم العثور على منتجات تطابق البحث: "{searchTerm}"</p>
+            <Button
+              variant="outline"
+              onClick={() => setSearchTerm("")}
+            >
+              مسح البحث
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {products.length === 0 && (
         <Card className="text-center py-12">

@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Receipt, Trash2, ShoppingCart } from "lucide-react";
+import { Plus, Receipt, Trash2, ShoppingCart, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 
 interface Product {
   id: string;
@@ -15,6 +16,7 @@ interface Product {
   price: number;
   quantity: number;
   category: string;
+  barcode: string;
 }
 
 interface Invoice {
@@ -48,7 +50,44 @@ export const InvoiceManagement = ({
   }[]>([]);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [itemQuantity, setItemQuantity] = useState("");
+  const [productSearch, setProductSearch] = useState("");
   const { toast } = useToast();
+
+  // Filter products based on search (name, category, barcode)
+  const filteredProducts = products.filter(product =>
+    product.quantity > 0 && (
+      product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+      product.category.toLowerCase().includes(productSearch.toLowerCase()) ||
+      product.barcode.includes(productSearch)
+    )
+  );
+
+  const handleBarcodeSearch = (barcodeValue: string) => {
+    const product = products.find(p => p.barcode === barcodeValue);
+    if (product) {
+      if (product.quantity > 0) {
+        setSelectedProduct(product.id);
+        setProductSearch("");
+        setItemQuantity("1");
+        toast({
+          title: "تم العثور على المنتج",
+          description: `${product.name} - ${product.price} د.ع`,
+        });
+      } else {
+        toast({
+          title: "تحذير",
+          description: "هذا المنتج غير متوفر في المخزن",
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "خطأ",
+        description: "لم يتم العثور على منتج بهذا الباركود",
+        variant: "destructive",
+      });
+    }
+  };
 
   const addItemToInvoice = () => {
     if (!selectedProduct || !itemQuantity) {
@@ -174,13 +213,32 @@ export const InvoiceManagement = ({
 
               <div className="space-y-4">
                 <Label>إضافة منتجات</Label>
+                
+                {/* Product Search */}
+                <div className="flex gap-2 mb-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="البحث بالاسم، الفئة أو الباركود..."
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      className="pr-10"
+                    />
+                  </div>
+                  <BarcodeScanner onScan={handleBarcodeSearch}>
+                    <Button type="button" variant="outline">
+                      مسح باركود
+                    </Button>
+                  </BarcodeScanner>
+                </div>
+
                 <div className="grid grid-cols-3 gap-2">
                   <Select value={selectedProduct} onValueChange={setSelectedProduct}>
                     <SelectTrigger>
                       <SelectValue placeholder="اختر منتج" />
                     </SelectTrigger>
                     <SelectContent>
-                      {products.filter(p => p.quantity > 0).map((product) => (
+                      {filteredProducts.map((product) => (
                         <SelectItem key={product.id} value={product.id}>
                           {product.name} - {product.price} د.ع (متوفر: {product.quantity})
                         </SelectItem>
@@ -242,6 +300,9 @@ export const InvoiceManagement = ({
                     setIsDialogOpen(false);
                     setCustomerName("");
                     setSelectedItems([]);
+                    setProductSearch("");
+                    setSelectedProduct("");
+                    setItemQuantity("");
                   }}
                 >
                   إلغاء

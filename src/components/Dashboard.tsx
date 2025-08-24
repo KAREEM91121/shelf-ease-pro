@@ -13,6 +13,7 @@ interface Product {
   price: number;
   quantity: number;
   category: string;
+  barcode: string;
 }
 
 interface Invoice {

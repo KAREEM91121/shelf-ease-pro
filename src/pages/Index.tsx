@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { Dashboard } from "@/components/Dashboard";
 import { ProductManagement } from "@/components/ProductManagement";
 import { InvoiceManagement } from "@/components/InvoiceManagement";
 import { InventoryManagement } from "@/components/InventoryManagement";
+import { useAutoSave, loadFromStorage } from "@/hooks/useAutoSave";
 
 interface Product {
   id: string;
@@ -11,6 +12,7 @@ interface Product {
   price: number;
   quantity: number;
   category: string;
+  barcode: string;
 }
 
 interface Invoice {
@@ -23,30 +25,44 @@ interface Invoice {
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: "1",
-      name: "أرز بسمتي",
-      price: 25.50,
-      quantity: 50,
-      category: "حبوب"
-    },
-    {
-      id: "2", 
-      name: "زيت طبخ",
-      price: 45.00,
-      quantity: 8,
-      category: "زيوت"
-    },
-    {
-      id: "3",
-      name: "سكر أبيض",
-      price: 18.75,
-      quantity: 25,
-      category: "حبوب"
-    }
-  ]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  
+  // Load data from localStorage on component mount
+  const [products, setProducts] = useState<Product[]>(() => 
+    loadFromStorage("supermarket_products", [
+      {
+        id: "1",
+        name: "أرز بسمتي",
+        price: 25.50,
+        quantity: 50,
+        category: "حبوب",
+        barcode: "1234567890123"
+      },
+      {
+        id: "2", 
+        name: "زيت طبخ",
+        price: 45.00,
+        quantity: 8,
+        category: "زيوت",
+        barcode: "1234567890124"
+      },
+      {
+        id: "3",
+        name: "سكر أبيض",
+        price: 18.75,
+        quantity: 25,
+        category: "حبوب",
+        barcode: "1234567890125"
+      }
+    ])
+  );
+  
+  const [invoices, setInvoices] = useState<Invoice[]>(() => 
+    loadFromStorage("supermarket_invoices", [])
+  );
+
+  // Auto-save data to localStorage
+  useAutoSave({ data: products, key: "supermarket_products" });
+  useAutoSave({ data: invoices, key: "supermarket_invoices" });
 
   const handleAddProduct = (productData: Omit<Product, 'id'>) => {
     const newProduct: Product = {

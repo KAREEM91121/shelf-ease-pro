@@ -11,6 +11,7 @@ interface Product {
   price: number;
   quantity: number;
   category: string;
+  barcode: string;
 }
 
 interface InventoryManagementProps {
@@ -24,7 +25,9 @@ export const InventoryManagement = ({ products }: InventoryManagementProps) => {
   const categories = [...new Set(products.map(p => p.category))];
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.barcode.includes(searchTerm);
     const matchesCategory = filterCategory === "all" || product.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
@@ -107,7 +110,7 @@ export const InventoryManagement = ({ products }: InventoryManagementProps) => {
         <div className="relative flex-1">
           <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="البحث في المنتجات..."
+            placeholder="البحث بالاسم، الفئة أو الباركود..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pr-10"
