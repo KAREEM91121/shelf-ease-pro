@@ -18,10 +18,19 @@ interface Product {
 
 interface Invoice {
   id: string;
+  invoiceNumber: string;
   customerName: string;
+  customerPhone?: string;
   total: number;
+  subtotal: number;
+  discount: number;
+  tax: number;
   date: string;
-  items: { productId: string; quantity: number; price: number }[];
+  dueDate?: string;
+  paymentStatus: 'paid' | 'pending' | 'overdue';
+  paymentMethod: 'cash' | 'credit';
+  notes?: string;
+  items: { productId: string; quantity: number; price: number; productName: string }[];
 }
 
 export const Dashboard = ({ products, invoices }: DashboardProps) => {
@@ -30,6 +39,11 @@ export const Dashboard = ({ products, invoices }: DashboardProps) => {
   const totalInvoices = invoices.length;
   const totalRevenue = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
   const lowStockProducts = products.filter(product => product.quantity < 10).length;
+  const pendingInvoices = invoices.filter(invoice => invoice.paymentStatus === 'pending').length;
+  const overdueInvoices = invoices.filter(invoice => 
+    invoice.paymentStatus === 'overdue' || 
+    (invoice.dueDate && new Date(invoice.dueDate) < new Date() && invoice.paymentStatus === 'pending')
+  ).length;
 
   const stats = [
     {
@@ -100,7 +114,7 @@ export const Dashboard = ({ products, invoices }: DashboardProps) => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -125,6 +139,33 @@ export const Dashboard = ({ products, invoices }: DashboardProps) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Receipt className="h-5 w-5 text-primary" />
+              الفواتير الآجلة
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {pendingInvoices > 0 ? (
+              <div className="space-y-2">
+                <div className="text-info text-lg font-semibold">
+                  {pendingInvoices} فاتورة في الانتظار
+                </div>
+                {overdueInvoices > 0 && (
+                  <div className="text-destructive text-sm font-medium">
+                    منها {overdueInvoices} فاتورة متأخرة
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-success text-lg font-semibold">
+                لا توجد فواتير آجلة
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-primary" />
               آخر الفواتير
             </CardTitle>
           </CardHeader>
@@ -132,9 +173,17 @@ export const Dashboard = ({ products, invoices }: DashboardProps) => {
             {invoices.length > 0 ? (
               <div className="space-y-2">
                 {invoices.slice(-3).reverse().map((invoice) => (
-                  <div key={invoice.id} className="flex justify-between items-center">
-                    <span className="text-sm">{invoice.customerName}</span>
-                    <span className="font-semibold">{invoice.total} د.ع</span>
+                  <div key={invoice.id} className="flex justify-between items-center text-sm">
+                    <div>
+                      <span className="font-medium">{invoice.customerName}</span>
+                      <span className="text-muted-foreground mr-2">#{invoice.invoiceNumber}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-semibold">{invoice.total.toFixed(2)} د.ع</span>
+                      <div className="text-xs text-muted-foreground">
+                        {invoice.paymentMethod === 'cash' ? 'نقداً' : 'آجل'}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

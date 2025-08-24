@@ -17,9 +17,18 @@ interface Product {
 
 interface Invoice {
   id: string;
+  invoiceNumber: string;
   customerName: string;
+  customerPhone?: string;
   total: number;
+  subtotal: number;
+  discount: number;
+  tax: number;
   date: string;
+  dueDate?: string;
+  paymentStatus: 'paid' | 'pending' | 'overdue';
+  paymentMethod: 'cash' | 'credit';
+  notes?: string;
   items: { productId: string; quantity: number; price: number; productName: string }[];
 }
 
@@ -84,6 +93,7 @@ const Index = () => {
     const newInvoice: Invoice = {
       ...invoiceData,
       id: Date.now().toString(),
+      invoiceNumber: invoiceData.invoiceNumber || `INV-${Date.now()}`,
     };
     setInvoices([...invoices, newInvoice]);
   };
